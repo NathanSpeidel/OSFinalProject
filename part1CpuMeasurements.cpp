@@ -60,20 +60,23 @@ double measureTimeMeasurementHelper(int numTimesToTest) {
 	unsigned long long results[numTimesToTest];
     unsigned long long beg, end;
     struct timespec test;
+    pid_t pid;
     for(int i=0; i<numTimesToTest; i++){
 	    beg = rdtsc();
 	    for(int j=0; j<1000; j++){
 	    	//dummy(1, 2, 3, 4, 5, 6, 7, 8);
-	    	clock_gettime(CLOCK_MONOTONIC_COARSE, &test);
-
-/*	    	pid = fork();
+	    	syscall(SYS_getpid);
+/*
+	    	pid = fork();
 	    	if(pid==-1){
 	    		fprintf(stderr, "can't fork, problem!!");
 	    		//exit(0);
 	    	} else if(pid == 0) {
 	    		// child process, just exit
 	    		_exit(0);
-	    	} else {}
+	    	} else {
+
+	    	}
 */
 	    }
    		end = rdtsc();
