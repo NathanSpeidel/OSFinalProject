@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv) {
     if (argc != 4) {
-        printf("%s <log2 buffer size> <N reads> <output file>\n", argv[0]);
+        printf("%s <log2 num pages> <N reads> <output file>\n", argv[0]);
         exit(1);
     }
 
@@ -28,8 +28,11 @@ int main(int argc, char** argv) {
     uint64_t* ts = malloc(sizeof(uint64_t)*M);
     uint64_t start, end;
     for (int64_t i = 0; i < M; ++i) {
+        char tmp = (rand() % 0xff);
+        int index = i*stride + (rand() % stride);
+
         start = _rdtsc();
-        buffer[i*stride + (rand() % stride)]  = (char)(rand() % 0xff);
+        buffer[index]  = tmp;
         end = _rdtsc();
         ts[i] = end - start;
     }
