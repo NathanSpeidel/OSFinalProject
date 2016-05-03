@@ -4,10 +4,10 @@ build: bandwidth.ex ram_access.ex
 debug: bandwidth.debug ram_access.debug
 
 %.ex: %.c
-	clang $< -o $@
+	gcc --std=c99 $< -o $@
 
 %.debug: %.c
-	clang -g $< -o $@
+	gcc --std=c99 -g $< -o $@
 
 results: build
 	mkdir -p ./plots
