@@ -4,9 +4,12 @@ from subprocess import Popen, PIPE
 import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
+matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-plt.ion()
+
+CYCLES_PER_SECOND = 800.17e6
+NANOSECOND = 1e9
 
 def map_access_cycles(sizes, strides, load):
     results = np.zeros((len(strides), len(sizes)), float)
@@ -24,7 +27,7 @@ def plot_access_cycles(results, sizes, strides, indices):
     linecolors = ["#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00"]
     plt.clf()
     for (i, k) in enumerate(indices):
-        plt.semilogx( sizes, results[k,:]
+        plt.semilogx( sizes*8, results[k,:]/(CYCLES_PER_SECOND/NANOSECOND)
                     , basex = 2
                     , color = linecolors[i]
                     , linewidth = 2
@@ -33,16 +36,23 @@ def plot_access_cycles(results, sizes, strides, indices):
 
 sizes   = np.power(2, range(5, 26))
 strides = np.power(2, range(3, 11))
-results = map_access_cycles(sizes, strides, 1000000)
+results = map_access_cycles(sizes, strides, 10000000)
 
 np.save("data/ram_access.dat", results)
 
 plt.figure(1)
-plot_access_cycles(results, sizes, strides, [0, 2, 3, 4, 7])
+plot_access_cycles(results, sizes, strides, [0, 2, 3, 4, 6])
 plt.xlabel( "Array Size [Byte]"
           , fontsize = 18
           , labelpad = 10
           )
+plt.ylabel( r"Latency [ns]"
+          , fontsize = 18
+          , labelpad = 10
+          )
+plt.twinx()
+plt.ylim(0, 100)
+plt.yticks(np.linspace(25,125,5)*0.80017, map(int, np.linspace(25,125,5)))
 plt.ylabel( "Latency [Cycle]"
           , fontsize = 18
           , labelpad = 10

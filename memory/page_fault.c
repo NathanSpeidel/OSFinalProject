@@ -1,29 +1,47 @@
+#include <x86intrin.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 #include <inttypes.h>
 
-int main() {
-    int N = 21;
+int main(int argc, char** argv) {
+    if (argc != 4) {
+        printf("%s <log2 num pages> <N reads> <output file>\n", argv[0]);
+        exit(1);
+    }
+
+    int N = atoi(argv[1]);;
+    int M = atoi(argv[2]);;
+
+    // Setup buffer
     int64_t stride = sysconf(_SC_PAGESIZE);
     int64_t bytes = stride * (1 << N);
     char* buffer  = malloc(bytes);
-    char* dst = buffer;
-    for (int64_t i = 0; i < stride; ++i) {
-            printf("\r%6.2f%%", 100.0*i/stride);
-            fflush(stdout);
-        char val = (char)(rand() % 0xff);
-        for (int64_t j = 0; j < (1 << N); ++j) {
-            buffer[j*stride + i]  = val + j;
-        }
+    // Touch every page once
+    for (int64_t j = 0; j < (1 << N); ++j) {
+        buffer[j*stride]  = (char)(rand() % 0xff);
     }
-    int tmp;
-    for (int64_t i = 0; i < (1 << 10); ++i) {
-        tmp += buffer[(rand() % bytes)];
-    }
-    printf("%d\n", tmp);
 
+    // Measure memory access time
+    uint64_t* ts = malloc(sizeof(uint64_t)*M);
+    uint64_t start, end;
+    for (int64_t i = 0; i < M; ++i) {
+        char tmp = (rand() % 0xff);
+        int index = i*stride + (rand() % stride);
+
+        start = _rdtsc();
+        buffer[index]  = tmp;
+        end = _rdtsc();
+        ts[i] = end - start;
+    }
+
+    // Record data in a binary file
+    FILE* f = fopen(argv[3], "wb");
+    fwrite(ts, sizeof(uint64_t)*M, 1, f);
+    fclose(f);
     free(buffer);
+    free(ts);
     return 0;
 }

@@ -2,6 +2,7 @@
 #include <x86intrin.h>
 #include <stdio.h>
 #include <strings.h>
+#include <string.h>
 #include <inttypes.h>
 
 typedef struct _Stats {
@@ -131,7 +132,7 @@ uint64_t time_copy(int bytes, int block_size) {
     char* dst = malloc(bytes);
     memcpy(dst, src, block_size);
     memset(dst, 0, bytes);
-    memset(dst, N, bytes);
+    memset(src, N, bytes);
 
     int64_t start, end;
 

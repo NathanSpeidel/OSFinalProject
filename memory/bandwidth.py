@@ -4,9 +4,12 @@ import numpy as np
 import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
+matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-plt.ion()
+
+CYCLES_PER_SECOND = 800.17e6
+MB = 1024*1024
 
 def measure_bandwidth(op, stride, trials, size):
     process = Popen( ["./bandwidth.ex", op, size, stride, trials]
@@ -42,13 +45,13 @@ def plot_results(sizes, means, stdevs, indices, labels):
     plt.clf()
     for (i, k) in enumerate(indices):
         plt.fill_between( sizes
-                        , means[k] - stdevs[k]
-                        , means[k] + stdevs[k]
+                        , (means[k] - stdevs[k])*CYCLES_PER_SECOND/MB
+                        , (means[k] + stdevs[k])*CYCLES_PER_SECOND/MB
                         , edgecolor = "None"
                         , facecolor = facecolors[i]
                         , alpha = 0.2)
 
-        h, = plt.semilogx( sizes, means[k]
+        h, = plt.semilogx( sizes, (means[k])*CYCLES_PER_SECOND/MB
                          , basex = 2
                          , color = linecolors[i]
                          , linewidth=2)
@@ -76,7 +79,7 @@ np.savez( "data/bandwidth.dat"
 plt.figure(1)
 plot_results( sizes, means, stdevs
             , [0, 11, 13]
-            , ( "Read" , "Write" , "memcpy (stride = 1 byte)"))
+            , ("memcpy (stride = 1 byte)", "Read" , "Write"))
 plt.xlabel( "Array Size [Byte]"
           , fontsize = 18
           , labelpad = 10
@@ -90,7 +93,7 @@ plt.savefig("plots/bandwidth_bytewise.pdf")
 plt.figure(1)
 plot_results( sizes, means, stdevs
             , [2, 12, 14]
-            , ( "Read" , "Write" , "memcpy (stride = 4 byte)"))
+            , ("memcpy (stride = 4 byte)", "Read" , "Write"))
 plt.xlabel( "Array Size [Byte]"
           , fontsize = 18
           , labelpad = 10
