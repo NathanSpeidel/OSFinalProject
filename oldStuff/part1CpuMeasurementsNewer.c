@@ -6,20 +6,10 @@
 #include <sys/syscall.h>
 #include <stdlib.h>
 #include <time.h>
-#include <sys/wait.h>
-#include <pthread.h>
 //#include <time.h>
 
-// Don't forget to disable 3 of the 4 cores!!   This is done by executing 
-// echo 0 > /sys/devices/system/cpu/cpu1/online
-// for each of the cpus (cpu1, cpu2 and cpu3 (cpu0 cant be turned off))
-// you can also see which CPUs are online with  "lscpu"
-// Or, alternitively
-// You can execute program with  "taskset -c 0 ./a.out" to ensure
+// Don't forget to execute program with  "taskset -c 0 ./a.out" to ensure
 // that it executes on a single core
-
-// Also don't forget that to use the pthread stuff you have to append 
-// "-lpthread"  to the very end of the compile command to gcc
 
 // Download rdtsc.h here:  (don't need to do this if you copied my folder)
 // https://www.mcs.anl.gov/~kazutomo/rdtsc. h
@@ -31,13 +21,11 @@
 // you MIGHT** have to download hdparm here:
 // https://sourceforge.net/projects/hdparm/
 
-int tempGlobal = 88;
-
 int main(){
-	printf("hello world!!!!!!!! WOOOOOOO!! %d \n", tempGlobal);
+	printf("hello world!!!!!!!! WOOOOOOO!! %d \n", getpid());
 
 	// Calculate overhead of reading TIME
-	int clockNumTrials = 1;
+	int clockNumTrials = 10;
 	double clockMean;
 	double clockStDev;
 	measureTimeMeasurement(clockNumTrials, clockMean, clockStDev);
@@ -56,7 +44,7 @@ int main(){
 void measureTimeMeasurement(int numTrials, double &mean, double &stDev){
 	double means[numTrials];
 	for(int i=0; i<numTrials; i++){
-		means[i] = measureTimeMeasurementHelper(1);
+		means[i] = measureTimeMeasurementHelper(100000);
 		printf("Trial %d:  %0.2f \n", i, means[i]);
 		calcStDev(means, numTrials);
 		calcMean(means, numTrials);
@@ -73,88 +61,53 @@ double measureTimeMeasurementHelper(int numTimesToTest) {
     unsigned long long beg, end;
     struct timespec test;
     pid_t pid;
-    pthread_t thread1;
     int temp;
-	int myPipe[2];
     for(int i=0; i<numTimesToTest; i++){
-	    //beg = rdtsc();
-	    //beg = 0;
-	    //for(int j=0; j<10; j++){
+	    beg = rdtsc();
+	    for(int j=0; j<10; j++){
 	    	//asm("");	// command Marc talked about that should order things?
-	    	//temp = dummy(temp, temp, temp, temp, temp, temp, temp, temp);
-	    	//tempGlobal = dummy(temp);
+	    	//dummy(temp, temp, temp, temp, temp, temp, temp, temp);
+	    	temp = dummy(88);
 	    	//asm("");
 	    	//syscall(SYS_getpid);
-	    	
-	    	/*
-	    	if(pthread_create(&thread1, NULL, threadFunction, &temp)){
-	    		fprintf(stderr, "Something went wrong creating thread!!");
-	    		printf("something went wrong creating thread!!!!");
-	    		return 1;
-	    	}
-	    	if(pthread_join(thread1, NULL)){
-	    		printf("error joining thread!  :(");
-	    		return 2;
-	    	}
-	    	//printf("threads joined now?");
-			*/
-
-			temp = pipe(myPipe);
-			if(temp==-1){
-				perror("problem making pipe!");
-			}
+/*
 	    	pid = fork();
-	    	if(pid==0){  // Child process
-	    		close(myPipe[0]);
-	    		//sleep(.1);
-	    		beg = rdtsc();
-	    		write(myPipe[1], &beg, sizeof(beg));
-	    		pthread_yield();
-	 		   	_exit(1);
-	    	} else if(pid > 0) {
-	    		// parent process;
-	    		read(myPipe[0], &beg, sizeof(beg));
-	    		end = rdtsc();
-	    		//wait(NULL);
-		    	//printf("Parent process. beg = %lld \n", beg);
+	    	if(pid==-1){
+	    		fprintf(stderr, "can't fork, problem!!");
+	    		//exit(0);
+	    	} else if(pid == 0) {
+	    		// child process, just exit
+	    		_exit(0);
 	    	} else {
-	    		// error
-	    		printf("Problem using fork()!!!");
-	    		perror("problem executing fork()");
-	    		exit(1);
-	    	}
-	    	
 
-	    //}
-   		//end = rdtsc();
-   		
-   		//tempGlobal = temp+temp;
+	    	}
+*/
+	    	}
+   		end = rdtsc();
    		//temp = temp+temp;
 		//printf("measurementOverhead:  %llu\n", end-beg);
 		// need to flush cache here?  Maybe not...
 		//calcStDev(results, numTimesToTest);
 		results[i] = end-beg;
-		//temp = temp+8;
+		temp = temp+8;
     }
     return calcMean(results, numTimesToTest);
 }
 
-// function to run in the kernel thread
-void* threadFunction(void *void_pointer){
-	//printf("in thread Function");
-	return NULL;
-}
-
 // dummy functions to test overhead of calling a function
-int dummy(int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8){return x1+x2+x3+x4+x5+x6+x7+x8;}
-int dummy(int x1, int x2, int x3, int x4, int x5, int x6, int x7){return x1+x2+x3+x4+x5+x6+x7;}
-int dummy(int x1, int x2, int x3, int x4, int x5, int x6){return x1+x2+x3+x4+x5+x6;}
-int dummy(int x1, int x2, int x3, int x4, int x5){return x1+x2+x3+x4+x5;}
-int dummy(int x1, int x2, int x3, int x4){return x1+x2+x3+x4;}
-int dummy(int x1, int x2, int x3){return x1+x2+x3;}
-int dummy(int x1, int x2){return x1+x2;}
-int dummy(int x1){return x1+1;}
-int dummy(){int test = tempGlobal; return test;}
+int dummy(int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8){
+	return x1+x2+x3+x4+x5+x6+x7;
+}
+void dummy(int x1, int x2, int x3, int x4, int x5, int x6, int x7){}
+void dummy(int x1, int x2, int x3, int x4, int x5, int x6){}
+void dummy(int x1, int x2, int x3, int x4, int x5){}
+void dummy(int x1, int x2, int x3, int x4){}
+void dummy(int x1, int x2, int x3){}
+void dummy(int x1, int x2){}
+int dummy(int x1){
+	return x1+1;
+}
+int dummy(){return 88;}
 
 // function to calculate the mean of an array
 double calcMean(unsigned long long data[], int length){
