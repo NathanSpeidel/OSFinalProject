@@ -18,6 +18,7 @@ measure_contention: measure_contention.ex 10000.raw
 	@for number in $$(seq -f "%03g" 0 10); do \
 	    cp 10000.raw contention_$$number.raw ; \
 	done
+	python measure_contention.py
 
 %.raw:
 	dd if=/dev/urandom of=$*.raw bs=1024 count=$*
