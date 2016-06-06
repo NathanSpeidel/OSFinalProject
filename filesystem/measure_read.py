@@ -50,6 +50,7 @@ if __name__ == "__main__":
     nblocks = (block_size // 1024)*fileblocks
     trials = 100
 
+    os.system('sudo bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"')
     results_s = np.fromiter((measure_read(block_size, n, trials, 's').mean()/n for n in nblocks), float)
 
     os.system('sudo bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"')
