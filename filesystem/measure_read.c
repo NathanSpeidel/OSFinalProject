@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <inttypes.h>
 #include "common.h"
 
 int* sequencial_indices(int N) {

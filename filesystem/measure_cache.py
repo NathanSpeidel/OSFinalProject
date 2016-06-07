@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-CYCLES_PER_SECOND = 3.5e9
+CYCLES_PER_SECOND = 800.078e6
 
 def measure_cache(filename, blocksize, nblocks, trials):
     process = Popen( ["./measure_cache.ex",
@@ -30,9 +30,9 @@ if __name__ == "__main__":
     matplotlib.rcParams['font.family'] = 'STIXGeneral'
     matplotlib.use('Agg')
 
-    filename = "31250000.raw"
+    filename = "15625000.raw"
     nblocks = np.array([1000, 10000, 100000 , 1000000,
-                        2000000 , 3000000 , 4000000, 5000000])
+                        2000000 , 3000000])
     block_size = 4096
     trials = 50
 

@@ -9,7 +9,8 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-CYCLES_PER_SECOND = 3.5e9
+CYCLES_PER_SECOND = 800.078e6
+CYCLES_PER_MS = CYCLES_PER_SECOND/1000
 
 def measure_read(blocksize, nblocks, trials, mode):
 
@@ -22,11 +23,11 @@ def measure_read(blocksize, nblocks, trials, mode):
     return np.fromiter((float(x) for x in output.split()[split:]), dtype=int) 
 
 def plot_results(nbytes, cycles_s, cycles_r):
-    plt.semilogx(nbytes, 1000*cycles_s/CYCLES_PER_SECOND, "o-",
+    plt.semilogx(nbytes, cycles_s/CYCLES_PER_MS, "o-",
                  color="#377eb8",
                  linewidth=3,
                  markeredgecolor="none")
-    plt.semilogx(nbytes, 1000*cycles_r/CYCLES_PER_SECOND, "o-",
+    plt.semilogx(nbytes, cycles_r/CYCLES_PER_MS, "o-",
                  color="#e41a1c",
                  linewidth=3,
                  markeredgecolor="none")

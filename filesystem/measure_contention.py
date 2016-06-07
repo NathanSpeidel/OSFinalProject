@@ -9,12 +9,11 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-CYCLES_PER_SECOND = 3.5e9
-CYCLES_PER_MS = 3.5e6
+CYCLES_PER_SECOND = 800.078e6
+CYCLES_PER_MS = CYCLES_PER_SECOND/1000
 
 def measure_contention(nprocs, blocksize, nblocks):
-    #os.system('sudo bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"')
-    os.system('sudo purge')
+    os.system('sudo bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"')
     fileprefix = "contention_"
     process = Popen( ["./measure_contention.ex",
                       str(nprocs), fileprefix,
