@@ -3,10 +3,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
 #include <arpa/inet.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #include <x86intrin.h>
 #include <inttypes.h>
@@ -92,9 +94,10 @@ typedef struct _tcp_timing {
   uint64_t postclose;
 } TCPTiming;
 
-void timing_client(char* host, char* port, int nbytes, TCPTiming* timing) {
+TCPTiming timing_client(char* host, char* port, int nbytes) {
 
   int status;
+  TCPTiming timing;
 
   struct addrinfo* server_addr = ip4tcp_addr_struct(host, port);
   int sockfd = socket( server_addr->ai_family,
@@ -105,28 +108,26 @@ void timing_client(char* host, char* port, int nbytes, TCPTiming* timing) {
   char* message = malloc(nbytes);
   char buffer[BUFFER_SIZE];
 
-  timing->preconnect = _rdtsc();
+  timing.preconnect = _rdtsc();
   status = connect(sockfd, server_addr->ai_addr, server_addr->ai_addrlen) ;
-  timing->postconnect = _rdtsc();
+  timing.postconnect = _rdtsc();
   check_gezero(status, "cannot connect to host");
 
-  timing->prewrite = _rdtsc();
+  timing.prewrite = _rdtsc();
   status = write(sockfd, message, nbytes);
   status = read(sockfd, buffer, BUFFER_SIZE);
-  timing->postread = _rdtsc();
+  timing.postread = _rdtsc();
 
   close(sockfd);
-  timing->postclose = _rdtsc();
+  timing.postclose = _rdtsc();
+  return timing;
 }
 
-void write_timing(FILE* fd, TCPTiming* timings, int n) {
-  fprintf(fd, "Connect, Write/Read, Close\n");
-  for (int i = 0; i < n; ++i) {
-    fprintf(fd, "%lu, %lu, %lu\n",
-            timings[i].postconnect - timings[i].preconnect,
-            timings[i].postread    - timings[i].prewrite,
-            timings[i].postclose   - timings[i].postread);
-  }
+void write_timing(FILE* stream, TCPTiming* timing) {
+  fprintf(stream, "%lu, %lu, %lu\n", 
+          timing->postconnect - timing->preconnect,
+          timing->postread    - timing->prewrite,
+          timing->postclose   - timing->postread);
 } 
 
 int main(int argc, char** argv) {
@@ -149,19 +150,18 @@ int main(int argc, char** argv) {
     TCPTiming* timings = malloc(sizeof(TCPTiming)*trials);
 
     int tenpercent = trials/10;
-    printf("Starting trails: ");
+    fprintf(stderr, "Starting trails: ");
     for (int i = 0; i < trials; ++i) {
-      timing_client(host, port, nbytes, &timings[i]);
+      TCPTiming timing = timing_client(host, port, nbytes);
+      write_timing(stdout, &timing);
+
       if (i % tenpercent == 0) {
-        printf("*");
-        fflush(stdout);
+        fprintf(stderr, "*");
+        fflush(stderr);
       }
     }
+    fprintf(stderr,"\n");
     printf("\n");
-
-    FILE* fd = fopen("rtt.dat", "w");
-    write_timing(fd, timings, trials);
-    fclose(fd);
   }
   else {
     fprintf(stderr, "expected 'c' or 's', got %c\n", argv[1][0]);
