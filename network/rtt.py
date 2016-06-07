@@ -35,15 +35,15 @@ if __name__ == "__main__":
     with open("data/rtt.txt", "w") as outfile:
         outfile.write("# Time in milliseconds\n")
         outfile.write("#host, mean setup, mean rtt, mean teardown, std setup, std rtt, std teardown\n")
-        outfile.write("local, "  + str(local_rtt[0].mean()) + ", "
-                                 + str(local_rtt[1].mean()) + ", "
-                                 + str(local_rtt[2].mean()) + ", "
-                                 + str(local_rtt[0].std())  + ", "
-                                 + str(local_rtt[1].std())  + ", "
-                                 + str(local_rtt[2].std())  + "\n")
-        outfile.write("remote, " + str(local_rtt[0].mean()) + ", "
-                                 + str(local_rtt[1].mean()) + ", "
-                                 + str(local_rtt[2].mean()) + ", "
-                                 + str(local_rtt[0].std())  + ", "
-                                 + str(local_rtt[1].std())  + ", "
-                                 + str(local_rtt[2].std())  + "\n")
+        outfile.write("local, "  + str( local_rtt[0].mean()) + ", "
+                                 + str( local_rtt[1].mean()) + ", "
+                                 + str( local_rtt[2].mean()) + ", "
+                                 + str( local_rtt[0].std())  + ", "
+                                 + str( local_rtt[1].std())  + ", "
+                                 + str( local_rtt[2].std())  + "\n")
+        outfile.write("remote, " + str(remote_rtt[0].mean()) + ", "
+                                 + str(remote_rtt[1].mean()) + ", "
+                                 + str(remote_rtt[2].mean()) + ", "
+                                 + str(remote_rtt[0].std())  + ", "
+                                 + str(remote_rtt[1].std())  + ", "
+                                 + str(remote_rtt[2].std())  + "\n")
