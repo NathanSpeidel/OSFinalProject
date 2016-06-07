@@ -8,19 +8,7 @@
 #include <x86intrin.h>
 #include <inttypes.h>
 
-uint64_t measure_seek(int fd, char* buffer, int blocksize, int nblocks) {
-  uint64_t start, end;
-
-  // Go to the beginning of the file
-  lseek(fd, 0, SEEK_SET);
-
-  start = _rdtsc();
-  for (int i = 0; i < nblocks; ++i)
-    read(fd, buffer, blocksize);
-  end = _rdtsc();
-
-  return end - start;
-}
+#include "common.h"
 
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -46,7 +34,6 @@ int main(int argc, char** argv) {
     close(fd);
     exit(1);
   }
-  char* buffer = malloc(blocksize);
 
   printf("Processor cycles to read %ld x %ld bytes\n",
          nblocks, blocksize);
@@ -54,7 +41,7 @@ int main(int argc, char** argv) {
   int tenpercent = trials/10;
   fprintf(stderr, "Starting trails: ");
   for (int i = 0; i < trials; ++i) {
-    dt = measure_seek(fd, buffer, blocksize, nblocks);
+    dt = measure_read(fd, blocksize, nblocks);
     printf("%ld\n", dt);
     if (i % tenpercent == 0) {
       fprintf(stderr, "*");
@@ -63,7 +50,6 @@ int main(int argc, char** argv) {
   }
   fprintf(stderr, "\n");
 
-  free(buffer);
   close(fd);
 
   return 0;

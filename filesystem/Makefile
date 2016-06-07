@@ -1,7 +1,12 @@
 all:
 	@echo "Nothing Yet"
 
-%.ex: %.c
+.SECONDARY:
+
+%.o: %.c %.h
+	clang -c $*.c
+
+%.ex: %.c common.o
 	clang $^ -o $@
 
 measure_read: measure_read.ex 100.raw 1000.raw 10000.raw 100000.raw 1000000.raw
