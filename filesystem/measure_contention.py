@@ -40,7 +40,7 @@ def plot_results(nprocs, read_cycles):
 if __name__ == "__main__":
 
     block_size = 4096
-    nblocks    = 1000
+    nblocks    = 2500
 
     nprocs = np.arange(1,11)
     trials = [10, 5, 4, 3, 2, 2, 2, 2, 2, 1]

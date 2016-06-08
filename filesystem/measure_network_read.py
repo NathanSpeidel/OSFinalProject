@@ -1,3 +1,4 @@
+import sys
 import os
 from subprocess import Popen, PIPE
 import numpy as np
@@ -14,12 +15,12 @@ CYCLES_PER_MS = CYCLES_PER_SECOND/1000
 
 def measure_read(blocksize, nblocks, trials, mode):
 
-    filename = "/home/nathan/NFSMount/" + str(1024*nblocks // blocksize) + ".raw"
+    filename = "/home/nathan/NFSMount/" + str(blocksize*nblocks // 1024) + ".raw"
     process = Popen( ["./measure_read.ex", mode,
                       filename, str(blocksize),
                       str(nblocks), str(trials)], stdout = PIPE)
     (output, err) = process.communicate()
-    return np.fromiter((float(x) for x in output.split()), dtype=int) 
+    return np.fromiter((float(x)/nblocks for x in output.split()), dtype=int) 
 
 def plot_results(nbytes, cycles_s, cycles_r):
     plt.loglog(nbytes, np.mean(cycles_s[:,1:], 1)/CYCLES_PER_MS, "o-",
@@ -41,10 +42,10 @@ def plot_results(nbytes, cycles_s, cycles_r):
     plt.xlabel("File Size [bytes]",
                fontsize = 18,
                labelpad = 10)
-    plt.ylabel("Average Read Time per Byte [ms]",
+    plt.ylabel("Average Read Time Per Block [ms]",
                fontsize = 18,
                labelpad = 10)
-    plt.legend(("Sequential (Subsequent)", "Sequential (Initial)", "Random (Subsequent)", "Random (Initial)"), loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=2, fancybox=True)
+    plt.legend(("Sequential (Subsequent)", "Sequential (Initial)", "Random (Subsequent)", "Random (Initial)"), loc='upper center', bbox_to_anchor=(0.5, 1.12), ncol=2, fancybox=True)
 
 # We can probably generate this with logspace
 if __name__ == "__main__":
@@ -53,25 +54,25 @@ if __name__ == "__main__":
     matplotlib.use('Agg')
 
     fileblocks = np.array([100 , 1000 , 10000 , 100000 , 1000000])
-    block_size = 1024
+    block_size = int(sys.argv[1])
 
-    nblocks = (block_size // 1024)*fileblocks
+    nblocks = 1024*fileblocks // block_size
     trials = 10
 
     os.system('sudo bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"')
     os.system('ssh -t angel@192.168.0.3 "sudo purge"')
-    results_s = np.stack((measure_read(block_size, n, trials, 's')/n for n in nblocks))
+    results_s = np.stack((measure_read(block_size, n, trials, 's') for n in nblocks))
 
     os.system('sudo bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"')
     os.system('ssh -t angel@192.168.0.3 "sudo purge"')
 
-    results_r = np.stack((measure_read(block_size, n, trials, 'r')/n for n in nblocks))
+    results_r = np.stack((measure_read(block_size, n, trials, 'r') for n in nblocks))
 
-    np.savez("data/filenfs.npz",
+    np.savez("data/filenfs_" + str(block_size) + ".npz",
              nblocks = nblocks,
              seqtimes = results_s,
              randtimes = results_r)
 
     plt.figure(1)
     plot_results(nblocks*block_size, results_s, results_r)
-    plt.savefig("plots/filenfs.pdf")
+    plt.savefig("plots/filenfs_" + str(block_size) + ".pdf")

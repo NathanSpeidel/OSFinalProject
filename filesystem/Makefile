@@ -14,7 +14,8 @@ all:
 measure_read: measure_read.ex 100.raw 1000.raw 10000.raw 100000.raw 1000000.raw
 	@mkdir -p data
 	@mkdir -p plots
-	python measure_read.py
+	python measure_read.py 4096
+	python measure_read.py 1024
 
 measure_cache: measure_cache.ex 15625000.raw
 	@mkdir -p data
